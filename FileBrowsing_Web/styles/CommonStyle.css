@@ -1,0 +1,14 @@
+﻿body {
+}
+
+.center {
+    margin: 1%;
+    margin-left: auto;
+    margin-right: auto;
+    width: 60%;
+    padding: 20px;
+}
+
+.ul-without-bullets {
+    list-style-type: none;
+}

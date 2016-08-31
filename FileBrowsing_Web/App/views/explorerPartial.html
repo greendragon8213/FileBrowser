@@ -1,0 +1,16 @@
+﻿<div>
+    <i ng-click="goToParentNode()" class="fa fa-level-up" aria-hidden="true"></i>
+    <label>{{CurrPath}}</label>
+
+    <ul class="ul-without-bullets">
+        <li ng-repeat="fold in SubFolders" ng-click="UpdateNode(fold.FullPath)">
+            <i class="fa fa-folder-o" aria-hidden="true"></i>
+            <label> {{fold.Name}} </label>
+        </li>
+
+        <li ng-repeat="file in NestedFiles">
+            <i class="fa fa-file-o" aria-hidden="true"></i>
+            <label> {{file.Name}} </label>
+        </li>
+    </ul>
+</div>

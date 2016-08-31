@@ -1,3 +1,7 @@
 FileBrowsing/bin/
 packages/
 FileBrowsing/obj/
+*/bin/*
+*/obj/*
+FileBrowser.Web/node_modules/grunt-contrib-uglify/node_modules/maxmin/node_modules/pretty-bytes/node_modules/meow/node_modules/camelcase-keys/node_modules/camelcase/license
+*/node_modules/*

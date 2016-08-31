@@ -1,0 +1,25 @@
+﻿<table class="table table-bordered">
+    <thead class="thead-inverse">
+        <tr>
+            <th>Less 10Mb</th>
+            <th>10Mb-50Mb</th>
+            <th>More 100Mb</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <i ng-hide="HideSnipperLess" class="fa fa-spinner fa-pulse fa-2x fa-fw"></i>
+                <p ng-hide="!HideSnipperLess">{{Less10Mb}}</p>
+            </td>
+            <td>
+                <i ng-hide="HideSnipperBtw" class="fa fa-spinner fa-pulse fa-2x fa-fw"></i>
+                <p ng-hide="!HideSnipperBtw">{{Between10_50Mb}} </p>
+            </td>
+            <td>
+                <i ng-hide="HideSnipperMore" class="fa fa-spinner fa-pulse fa-2x fa-fw"></i>
+                <p ng-hide="!HideSnipperMore">{{More100Mb}} </p>
+            </td>
+        </tr>
+    </tbody>
+</table>

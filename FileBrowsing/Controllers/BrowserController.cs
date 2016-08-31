@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Http;
 using AutoMapper;
 using FileBrowsing.Common;
@@ -67,6 +68,9 @@ namespace FileBrowsing.Controllers
         [HttpPost]
         public HttpResponseMessage GetFilesCount(string path, [FromBody] Filter filter)
         {
+            if (path=="")//ToDo
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+
             Expression<Func<FileInfo, bool>> getFilesCountByFileSizePredicate =
                 fi =>
                     fi.Length < filter.MaxFileLengthMb * Constants.BytesCountInMegabyte &&
