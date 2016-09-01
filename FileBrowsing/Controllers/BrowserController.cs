@@ -37,6 +37,12 @@ namespace FileBrowsing.Controllers
         public HttpResponseMessage GetAllNodesByFolderPath(string path)
         {
             var directoryInfo = new DirectoryInfo(path);
+
+            if (!directoryInfo.Exists)
+            {
+                return Request.CreateResponse(HttpStatusCode.NoContent);
+            }
+
             var allNodesInFolderNode = _mapper.Map<DirectoryInfo, FolderNode>(directoryInfo);
 
             var dirs = directoryInfo.GetAvailableSubDirectories().ToList();
@@ -51,6 +57,10 @@ namespace FileBrowsing.Controllers
         [HttpPost]
         public async Task<HttpResponseMessage> GetFilesCountFromAllDisks([FromBody] Filter filter)
         {
+            if (filter == null || filter.MinFileLengthMb > filter.MaxFileLengthMb)
+            {
+                return Request.CreateResponse(HttpStatusCode.NoContent);
+            }
             var allDrives = DriveInfo.GetDrives();
 
             Expression<Func<FileInfo, bool>> getFilesCountByFileSizePredicate =
@@ -70,15 +80,24 @@ namespace FileBrowsing.Controllers
         [HttpPost]
         public async Task<HttpResponseMessage> GetFilesCount(string path, [FromBody] Filter filter)
         {
-            if (path == "")//ToDo
-                return Request.CreateResponse(HttpStatusCode.NotFound);
+            if (filter == null || filter.MinFileLengthMb > filter.MaxFileLengthMb)
+            {
+                return Request.CreateResponse(HttpStatusCode.NoContent);
+            }
+
+            var directoryInfo = new DirectoryInfo(path);
+
+            if (!directoryInfo.Exists)
+            {
+                return Request.CreateResponse(HttpStatusCode.NoContent);
+            }
 
             Expression<Func<FileInfo, bool>> getFilesCountByFileSizePredicate =
                 fi =>
                     fi.Length < filter.MaxFileLengthMb * Constants.BytesCountInMegabyte &&
                     fi.Length > filter.MinFileLengthMb * Constants.BytesCountInMegabyte;
 
-            int filesCount = await Task.Factory.StartNew(() => new DirectoryInfo(path)
+            int filesCount = await Task.Factory.StartNew(() => directoryInfo
                     .GetAllAvailableFilesByPredicate(getFilesCountByFileSizePredicate).Result.Count());
 
             return Request.CreateResponse(HttpStatusCode.OK, filesCount);

@@ -27,7 +27,6 @@ app.config(['$stateProvider', '$urlRouterProvider', '$httpProvider',
                                 templateUrl: 'views/statisticPartial.html',
                                 controller: 'statisticController'
                             }
-
                         }
                     })
                     .state('explorer', {
@@ -57,12 +56,6 @@ angular.module('myApp')
     $scope.SubFolders = {};
     $scope.NestedFiles = {};
 
-    //$scope.GoToPath = function (path) {
-    //    $scope.CurrPath = path;
-    //    $scope.GetSubFolders(); 
-    //    $scope.GetNestedFiles();
-    //    $rootScope.$broadcast('currPathChanged', { newPath: $scope.CurrPath });
-    //}
     $scope.goToParentNode = goToParentNode;
     $scope.UpdateNode = UpdateNode;
     $scope.HideUpdSnipper = false;

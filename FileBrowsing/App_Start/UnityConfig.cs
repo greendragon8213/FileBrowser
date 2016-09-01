@@ -12,10 +12,7 @@ namespace FileBrowsing.App_Start
             var container = new UnityContainer();
             
             container.RegisterType<IMapper>(new InjectionFactory(_ => AutoMapperConfig.ServiceMapper()));
-
-            //log4net
-            //container.RegisterInstance<ILog>(LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType));
-
+            
             config.DependencyResolver = new UnityDependencyResolver(container);
         }
     }
