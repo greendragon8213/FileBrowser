@@ -2,7 +2,8 @@
     <i ng-click="goToParentNode()" class="fa fa-level-up" aria-hidden="true"></i>
     <label>{{CurrPath}}</label>
 
-    <ul class="ul-without-bullets">
+    <i ng-hide="HideUpdSnipper" class="fa fa-spinner fa-pulse fa-2x fa-fw"></i>
+    <ul ng-hide="!HideUpdSnipper" class="ul-without-bullets">
         <li ng-repeat="fold in SubFolders" ng-click="UpdateNode(fold.FullPath)">
             <i class="fa fa-folder-o" aria-hidden="true"></i>
             <label> {{fold.Name}} </label>

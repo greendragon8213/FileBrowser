@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Web.Http;
 using System.Web.Http.Cors;
@@ -13,7 +14,7 @@ namespace FileBrowsing
         {
             UnityConfig.RegisterComponents(config);
             // Web API configuration and services
-            var corsAttr = new EnableCorsAttribute("http://localhost:65242", "*", "*");
+            var corsAttr = new EnableCorsAttribute(ConfigurationManager.AppSettings["clientDestinationPath"], "*", "*");
             config.EnableCors(corsAttr);
             //config.EnableCors();
 

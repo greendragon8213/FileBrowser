@@ -1,133 +1,91 @@
-﻿;(function() {
+﻿;
+(function() {
     'use strict';
 
     angular.module('myApp')
-        .service('statisticService', ['$http', '$q', function($http, $q) {
+        .service('statisticService', [
+            '$http', '$q', 'webconfig', function ($http, $q, webconfig) {
 
-            this.apidestination = 'http://localhost:54454/api/';
-            //var requests = {};
+                var getFilesCount = function (path, data) {
 
-            //this.clearRequestsCache = clearRequestsCache;
+                    var defer = $q.defer();
+                    var promise = defer.promise;
+                    promise.abort = abort;
+                    
+                    var res;
 
-            //function clearRequestsCache() {
-            //    requests = {};
-            //}
-
-            var getFilesCount = function (path, data) {
-                var apidestination = 'http://localhost:54454/api/';
-
-                console.log("getFCount Ajax ", path);
-
-                var res = '';
-
-                if (path) {
-                    res = $http.post(
-                        apidestination + 'Browser/GetFilesCount?path=' + path,
-                        data,
-                        {
-                            headers: {
-                                'Content-Type': 'application/json'
+                    if (path) {
+                        res = $http.post(
+                            webconfig.apidestination + 'Browser/GetFilesCount?path=' + path,
+                            data,
+                            {
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
                             }
-                        }
-                    );
-                } else {
-                    res = $http.post(
-                        apidestination + 'Browser/GetFilesCountFromAllDisks',
-                        data,
-                        {
-                            headers: {
-                                'Content-Type': 'application/json'
+                        );
+                    } else {
+                        res = $http.post(
+                            webconfig.apidestination + 'Browser/GetFilesCountFromAllDisks',
+                            data,
+                            {
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
+
+                    res.then(data => {
+                        defer.resolve(data);
+                    });
+
+                    return promise;
+
+                    function abort(data) {
+                        defer.resolve(data);
+                    }
                 }
-                return res;
+
+                var promise10;
+                this.GetFilesCountLess10 = function(path) {
+                    var data = {
+                        "MaxFileLengthMb": "10"
+                    }
+
+                    if (promise10) promise10.abort();
+
+                    promise10 = getFilesCount(path, data);
+
+                    return promise10;
+                }
+
+                var promise10_50;
+                this.GetFilesCountBtw10_50 = function(path) {
+                    var data = {
+                        "MinFileLengthMb": "10",
+                        "MaxFileLengthMb": "50"
+                    }
+
+                    if (promise10_50) promise10_50.abort();
+
+                    promise10_50 = getFilesCount(path, data);
+
+                    return promise10_50;
+                }
+
+                var promise100;
+                this.GetFilesCountMore100 = function(path) {
+                    var data = {
+                        "MinFileLengthMb": "100"
+                    }
+
+                    if (promise100) promise100.abort();
+
+                    promise100 = getFilesCount(path, data);
+
+                    return promise100;
+                }
             }
-            
-            var canceller10, isSending10 = false;
-            this.GetFilesCountLess10 = function (path) {
-                var data = {
-                    "MaxFileLengthMb": "10"
-                }
-
-                if (isSending10) {
-                    console.log("trying stop 10 ", path);
-                    canceller10.resolve();
-                }
-                isSending10 = true;
-                canceller10 = $q.defer();
-
-                var res = getFilesCount(path, data);
-
-                res.success(function () {
-                    isSending10 = false;
-                }).error(function () {
-                    isSending10 = false;
-                });
-
-                return res;
-            }
-
-            var canceller10_50, isSending10_50 = false;
-            this.GetFilesCountBtw10_50 = function (path) {
-                var data = {
-                    "MinFileLengthMb": "10",
-                    "MaxFileLengthMb": "50"
-                }
-
-                if (isSending10_50) {
-                    console.log("trying stop 10_50 ", path);
-                    canceller10_50.resolve();
-                }
-                isSending10_50 = true;
-                canceller10_50 = $q.defer();
-
-                var res = getFilesCount(path, data);
-
-                res.success(function () {
-                    isSending10_50 = false;
-                }).error(function () {
-                    isSending10_50 = false;
-                });
-
-                return res;
-
-                //if(!requests.GetFilesCountBtw10_50){
-                //    requests.GetFilesCountBtw10_50 = getFilesCount(path, data);
-                //    }
-
-                //return requests.GetFilesCountBtw10_50.success(function () {
-                //    isSending10_50 = false;
-                //    requests.GetFilesCountBtw10_50 = null;
-                //}).error(function () {
-                //    isSending10_50 = false;
-                //});
-            }
-
-            var canceller100, isSending100 = false;
-            this.GetFilesCountMore100 = function (path) {
-                var data = {
-                    "MinFileLengthMb": "100"
-                }
-
-                if (isSending100) {
-                    console.log("trying stop 100 ", path);
-                    canceller100.resolve();
-                }
-                isSending100 = true;
-                canceller100 = $q.defer();
-
-                var res = getFilesCount(path, data);
-
-                res.success(function () {
-                    isSending100 = false;
-                }).error(function () {
-                    isSending100 = false;
-                });
-
-                return res;
-            }
-
-        }]);
-
-})()
+        ]);
+})();

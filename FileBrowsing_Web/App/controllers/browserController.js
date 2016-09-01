@@ -9,19 +9,14 @@ angular.module('myApp')
     $scope.SubFolders = {};
     $scope.NestedFiles = {};
 
-    //$scope.GoToPath = function (path) {
-    //    $scope.CurrPath = path;
-    //    $scope.GetSubFolders(); 
-    //    $scope.GetNestedFiles();
-    //    $rootScope.$broadcast('currPathChanged', { newPath: $scope.CurrPath });
-    //}
     $scope.goToParentNode = goToParentNode;
     $scope.UpdateNode = UpdateNode;
+    $scope.HideUpdSnipper = false;
 
     init();
 
     function init() {
-        UpdateNode('');
+        UpdateNode('./');
     }
 
     function goToParentNode() {
@@ -29,21 +24,19 @@ angular.module('myApp')
     }
 
     function UpdateNode(path) {
-
-        console.log("trying to updateNode ", path);
-        console.log($http.pendingRequests);
-
+        
+        $scope.HideUpdSnipper = false;
         browserService.GetFolderNode(path).success(function (data) {
             $scope.CurrPath = data.FullPath;
             $scope.FolderName = data.Name;
             $scope.ParentPath = data.ParentPath;
             $scope.SubFolders = data.SubFolders;
             $scope.NestedFiles = data.NestedFiles;
-
-            console.log("Updated", data);
-
+            
         }).error(function() {
             console.log("error when trying to get data by path");
+        }).finally(function() {
+            $scope.HideUpdSnipper = true;
         });
 
         $rootScope.$broadcast('currPathChanged', { newPath: path });

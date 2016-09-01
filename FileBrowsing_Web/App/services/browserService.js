@@ -3,16 +3,13 @@
     'use strict';
 
     angular.module('myApp')
-        .service('browserService', ['$http', function ($http) {
-
-            this.apidestination = 'http://localhost:54454/api/';
+        .service('browserService', ['$http', 'webconfig', function ($http, webconfig) {
 
             this.GetFolderNode = function (path) {
-                console.log("trying to send ajax to get folder node ", path);
                 if (path)
-                    return $http.get(this.apidestination + 'Browser/GetAllNodesByFolderPath?path=' + path);
+                    return $http.get(webconfig.apidestination + 'Browser/GetAllNodesByFolderPath?path=' + path);
 
-                return $http.get(this.apidestination + 'Browser/GetAllNodesFromMyComputer');
+                return $http.get(webconfig.apidestination + 'Browser/GetAllNodesFromMyComputer');
             }
 
         }]);

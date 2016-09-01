@@ -16,6 +16,7 @@ namespace FileBrowsing.Controllers
 {
     public class BrowserController : ApiController
     {
+        private const string Root = "My Computer";
         private readonly IMapper _mapper;
 
         public BrowserController(IMapper mapper)
@@ -25,7 +26,7 @@ namespace FileBrowsing.Controllers
 
         public HttpResponseMessage GetAllNodesFromMyComputer()
         {
-            var folder = new FolderNode(null, null, "Root");
+            var folder = new FolderNode(null, null, Root);
 
             var allDrives = DriveInfo.GetDrives().ToList();
             folder.SubFolders = _mapper.Map<List<DriveInfo>, List<FolderNode>>(allDrives);
@@ -44,12 +45,11 @@ namespace FileBrowsing.Controllers
             var files = directoryInfo.GetAvailableNestedFiles().ToList();
             allNodesInFolderNode.NestedFiles = _mapper.Map<List<FileInfo>, List<FileNode>>(files);
 
-            //ToDo in frontend add tooltip about files in folders
             return Request.CreateResponse(HttpStatusCode.OK, allNodesInFolderNode);
         }
 
         [HttpPost]
-        public HttpResponseMessage GetFilesCountFromAllDisks([FromBody] Filter filter)
+        public async Task<HttpResponseMessage> GetFilesCountFromAllDisks([FromBody] Filter filter)
         {
             var allDrives = DriveInfo.GetDrives();
 
@@ -58,17 +58,19 @@ namespace FileBrowsing.Controllers
                     fi.Length < filter.MaxFileLengthMb * Constants.BytesCountInMegabyte &&
                     fi.Length > filter.MinFileLengthMb * Constants.BytesCountInMegabyte;
 
-            int filesCount = allDrives.Sum(
-                drive => new DirectoryInfo(drive.Name)
-                    .GetAllAvailableFilesByPredicate(getFilesCountByFileSizePredicate).Count());
+            int filesCount = await Task.Factory.StartNew(() =>
+                allDrives.Sum(drive => new DirectoryInfo(drive.Name)
+                .GetAllAvailableFilesByPredicate(getFilesCountByFileSizePredicate)
+                .Result
+                .Count()));
 
             return Request.CreateResponse(HttpStatusCode.OK, filesCount);
         }
 
         [HttpPost]
-        public HttpResponseMessage GetFilesCount(string path, [FromBody] Filter filter)
+        public async Task<HttpResponseMessage> GetFilesCount(string path, [FromBody] Filter filter)
         {
-            if (path=="")//ToDo
+            if (path == "")//ToDo
                 return Request.CreateResponse(HttpStatusCode.NotFound);
 
             Expression<Func<FileInfo, bool>> getFilesCountByFileSizePredicate =
@@ -76,8 +78,8 @@ namespace FileBrowsing.Controllers
                     fi.Length < filter.MaxFileLengthMb * Constants.BytesCountInMegabyte &&
                     fi.Length > filter.MinFileLengthMb * Constants.BytesCountInMegabyte;
 
-            int filesCount = new DirectoryInfo(path)
-                .GetAllAvailableFilesByPredicate(getFilesCountByFileSizePredicate).Count();
+            int filesCount = await Task.Factory.StartNew(() => new DirectoryInfo(path)
+                    .GetAllAvailableFilesByPredicate(getFilesCountByFileSizePredicate).Result.Count());
 
             return Request.CreateResponse(HttpStatusCode.OK, filesCount);
         }

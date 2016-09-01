@@ -12,35 +12,39 @@ angular.module('myApp')
     $scope.HideSnipperMore = false;
 
     $scope.UpdateStatistic = function (currPath) {
-        //console.log("updating with data:", currPath);
 
         $scope.HideSnipperLess = false;
-        statisticService.GetFilesCountLess10(currPath).success(function (data) {
-            $scope.Less10Mb = data;
-            //console.log($scope.Less10Mb);
-            $scope.HideSnipperLess = true;
-            //console.log($scope.HideSnipperLess);
-        }).error(function() {
+        statisticService.GetFilesCountLess10(currPath).then(function (prom) {
+            if (prom) {
+                $scope.Less10Mb = prom.data;
+                $scope.HideSnipperLess = true;
+            }
+        }).catch(function() {
             console.log('error when trying to get files count less than 10Mb');
             $scope.Less10Mb = "???";
             $scope.HideSnipperLess = true;
         });
 
         $scope.HideSnipperBtw = false;
-        statisticService.GetFilesCountBtw10_50(currPath).success(function (data) {
-            $scope.Between10_50Mb = data;
-            $scope.HideSnipperBtw = true;
-        }).error(function () {
+        statisticService.GetFilesCountBtw10_50(currPath).then(function (prom) {
+            if (prom) {
+                $scope.Between10_50Mb = prom.data;
+                $scope.HideSnipperBtw = true;
+            }
+        }).catch(function () {
             console.log('error when trying to get files count between 10 - 50Mb');
             $scope.Between10_50Mb = "???";
             $scope.HideSnipperBtw = true;
         });
 
         $scope.HideSnipperMore = false;
-        statisticService.GetFilesCountMore100(currPath).success(function (data) {
-            $scope.More100Mb = data;
-            $scope.HideSnipperMore = true;
-        }).error(function () {
+        statisticService.GetFilesCountMore100(currPath).then(function (prom) {
+            if (prom) {
+                $scope.More100Mb = prom.data;
+                $scope.HideSnipperMore = true;
+            }
+           
+        }).catch(function () {
             console.log('error when trying to get files count more than 100Mb');
             $scope.More100Mb = "???";
             $scope.HideSnipperMore = true;
@@ -48,9 +52,7 @@ angular.module('myApp')
     }
 
     $scope.$on('currPathChanged', function (event, response) {
-        console.log("on: сurrPath changed: ", response.newPath);
         $scope.UpdateStatistic(response.newPath);
     });
 
-    $scope.UpdateStatistic('');
 }]);

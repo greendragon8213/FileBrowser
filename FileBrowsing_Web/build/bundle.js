@@ -1,46 +1,49 @@
 var app = angular.module('myApp', ['ui.router']);
 
+app.constant("webconfig", {
+    apidestination: 'http://localhost:54454/api/'
+});
+
 app.config(['$stateProvider', '$urlRouterProvider', '$httpProvider',
             function ($stateProvider, $urlRouterProvider, $httpProvider) {
 
     $urlRouterProvider.otherwise('/home');
 
-    $stateProvider
+                $stateProvider
+                    .state('home', {
+                        url: '/home',
+                        templateUrl: 'views/home.html',
+                        controller: 'homeController',
 
-        .state('home', {
-            url: '/home',
-            //templateUrl: 'views/home.html',
-            controller: 'homeController',
+                        views: {
+                            '': { templateUrl: 'views/home.html' },
 
-            views: {
-                '': { templateUrl: 'views/home.html' },
+                            'explorer@home': {
+                                templateUrl: 'views/explorerPartial.html',
+                                controller: 'browserController'
+                            },
 
-                'explorer@home': {
-                    templateUrl: 'views/explorerPartial.html',
-                    controller: 'browserController'
-                },
+                            'statistic@home': {
+                                templateUrl: 'views/statisticPartial.html',
+                                controller: 'statisticController'
+                            }
 
-                'statistic@home': {
-                    templateUrl: 'views/statisticPartial.html',
-                    controller: 'statisticController'
-                }
-                
-            }
-        })
+                        }
+                    })
+                    .state('explorer', {
+                        url: '/explorer',
+                        templateUrl: 'views/explorerPartial.html',
+                        controller: 'browserController'
+                    })
+                    .state('statistic', {
+                        url: '/statistic',
+                        templateUrl: 'views/statisticPartial.html',
+                        controller: 'statisticController'
+                    });
 
-        .state('explorer', {
-            url: '/explorer',
-            templateUrl: 'views/explorerPartial.html',
-            controller: 'browserController'
-        })
-
-        .state('statistic', {
-            url: '/statistic',
-            templateUrl: 'views/statisticPartial.html',
-            controller: 'statisticController'
-        });
 
             }]);
+
 
 
 'use strict';
@@ -62,11 +65,12 @@ angular.module('myApp')
     //}
     $scope.goToParentNode = goToParentNode;
     $scope.UpdateNode = UpdateNode;
+    $scope.HideUpdSnipper = false;
 
     init();
 
     function init() {
-        UpdateNode('');
+        UpdateNode('./');
     }
 
     function goToParentNode() {
@@ -74,21 +78,19 @@ angular.module('myApp')
     }
 
     function UpdateNode(path) {
-
-        console.log("trying to updateNode ", path);
-        console.log($http.pendingRequests);
-
+        
+        $scope.HideUpdSnipper = false;
         browserService.GetFolderNode(path).success(function (data) {
             $scope.CurrPath = data.FullPath;
             $scope.FolderName = data.Name;
             $scope.ParentPath = data.ParentPath;
             $scope.SubFolders = data.SubFolders;
             $scope.NestedFiles = data.NestedFiles;
-
-            console.log("Updated", data);
-
+            
         }).error(function() {
             console.log("error when trying to get data by path");
+        }).finally(function() {
+            $scope.HideUpdSnipper = true;
         });
 
         $rootScope.$broadcast('currPathChanged', { newPath: path });
@@ -100,8 +102,6 @@ angular.module('myApp')
 
     angular.module('myApp')
     .controller('homeController', ['$scope', function ($scope) {
-        alert("h");
-        $scope.message = "Now viewing home!";
 }]);
 'use strict';
 
@@ -117,35 +117,39 @@ angular.module('myApp')
     $scope.HideSnipperMore = false;
 
     $scope.UpdateStatistic = function (currPath) {
-        //console.log("updating with data:", currPath);
 
         $scope.HideSnipperLess = false;
-        statisticService.GetFilesCountLess10(currPath).success(function (data) {
-            $scope.Less10Mb = data;
-            //console.log($scope.Less10Mb);
-            $scope.HideSnipperLess = true;
-            //console.log($scope.HideSnipperLess);
-        }).error(function() {
+        statisticService.GetFilesCountLess10(currPath).then(function (prom) {
+            if (prom) {
+                $scope.Less10Mb = prom.data;
+                $scope.HideSnipperLess = true;
+            }
+        }).catch(function() {
             console.log('error when trying to get files count less than 10Mb');
             $scope.Less10Mb = "???";
             $scope.HideSnipperLess = true;
         });
 
         $scope.HideSnipperBtw = false;
-        statisticService.GetFilesCountBtw10_50(currPath).success(function (data) {
-            $scope.Between10_50Mb = data;
-            $scope.HideSnipperBtw = true;
-        }).error(function () {
+        statisticService.GetFilesCountBtw10_50(currPath).then(function (prom) {
+            if (prom) {
+                $scope.Between10_50Mb = prom.data;
+                $scope.HideSnipperBtw = true;
+            }
+        }).catch(function () {
             console.log('error when trying to get files count between 10 - 50Mb');
             $scope.Between10_50Mb = "???";
             $scope.HideSnipperBtw = true;
         });
 
         $scope.HideSnipperMore = false;
-        statisticService.GetFilesCountMore100(currPath).success(function (data) {
-            $scope.More100Mb = data;
-            $scope.HideSnipperMore = true;
-        }).error(function () {
+        statisticService.GetFilesCountMore100(currPath).then(function (prom) {
+            if (prom) {
+                $scope.More100Mb = prom.data;
+                $scope.HideSnipperMore = true;
+            }
+           
+        }).catch(function () {
             console.log('error when trying to get files count more than 100Mb');
             $scope.More100Mb = "???";
             $scope.HideSnipperMore = true;
@@ -153,163 +157,117 @@ angular.module('myApp')
     }
 
     $scope.$on('currPathChanged', function (event, response) {
-        console.log("on: сurrPath changed: ", response.newPath);
         $scope.UpdateStatistic(response.newPath);
     });
 
-    $scope.UpdateStatistic('');
 }]);
 (function () {
 
     'use strict';
 
     angular.module('myApp')
-        .service('browserService', ['$http', function ($http) {
-
-            this.apidestination = 'http://localhost:54454/api/';
+        .service('browserService', ['$http', 'webconfig', function ($http, webconfig) {
 
             this.GetFolderNode = function (path) {
-                console.log("trying to send ajax to get folder node ", path);
                 if (path)
-                    return $http.get(this.apidestination + 'Browser/GetAllNodesByFolderPath?path=' + path);
+                    return $http.get(webconfig.apidestination + 'Browser/GetAllNodesByFolderPath?path=' + path);
 
-                return $http.get(this.apidestination + 'Browser/GetAllNodesFromMyComputer');
+                return $http.get(webconfig.apidestination + 'Browser/GetAllNodesFromMyComputer');
             }
 
         }]);
 
 })()
-;(function() {
+;
+(function() {
     'use strict';
 
     angular.module('myApp')
-        .service('statisticService', ['$http', '$q', function($http, $q) {
+        .service('statisticService', [
+            '$http', '$q', 'webconfig', function ($http, $q, webconfig) {
 
-            this.apidestination = 'http://localhost:54454/api/';
-            //var requests = {};
+                var getFilesCount = function (path, data) {
 
-            //this.clearRequestsCache = clearRequestsCache;
+                    var defer = $q.defer();
+                    var promise = defer.promise;
+                    promise.abort = abort;
+                    
+                    var res;
 
-            //function clearRequestsCache() {
-            //    requests = {};
-            //}
-
-            var getFilesCount = function (path, data) {
-                var apidestination = 'http://localhost:54454/api/';
-
-                console.log("getFCount Ajax ", path);
-
-                var res = '';
-
-                if (path) {
-                    res = $http.post(
-                        apidestination + 'Browser/GetFilesCount?path=' + path,
-                        data,
-                        {
-                            headers: {
-                                'Content-Type': 'application/json'
+                    if (path) {
+                        res = $http.post(
+                            webconfig.apidestination + 'Browser/GetFilesCount?path=' + path,
+                            data,
+                            {
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
                             }
-                        }
-                    );
-                } else {
-                    res = $http.post(
-                        apidestination + 'Browser/GetFilesCountFromAllDisks',
-                        data,
-                        {
-                            headers: {
-                                'Content-Type': 'application/json'
+                        );
+                    } else {
+                        res = $http.post(
+                            webconfig.apidestination + 'Browser/GetFilesCountFromAllDisks',
+                            data,
+                            {
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
+
+                    res.then(data => {
+                        defer.resolve(data);
+                    });
+
+                    return promise;
+
+                    function abort(data) {
+                        defer.resolve(data);
+                    }
                 }
-                return res;
+
+                var promise10;
+                this.GetFilesCountLess10 = function(path) {
+                    var data = {
+                        "MaxFileLengthMb": "10"
+                    }
+
+                    if (promise10) promise10.abort();
+
+                    promise10 = getFilesCount(path, data);
+
+                    return promise10;
+                }
+
+                var promise10_50;
+                this.GetFilesCountBtw10_50 = function(path) {
+                    var data = {
+                        "MinFileLengthMb": "10",
+                        "MaxFileLengthMb": "50"
+                    }
+
+                    if (promise10_50) promise10_50.abort();
+
+                    promise10_50 = getFilesCount(path, data);
+
+                    return promise10_50;
+                }
+
+                var promise100;
+                this.GetFilesCountMore100 = function(path) {
+                    var data = {
+                        "MinFileLengthMb": "100"
+                    }
+
+                    if (promise100) promise100.abort();
+
+                    promise100 = getFilesCount(path, data);
+
+                    return promise100;
+                }
             }
-            
-            var canceller10, isSending10 = false;
-            this.GetFilesCountLess10 = function (path) {
-                var data = {
-                    "MaxFileLengthMb": "10"
-                }
+        ]);
+})();
 
-                if (isSending10) {
-                    console.log("trying stop 10 ", path);
-                    canceller10.resolve();
-                }
-                isSending10 = true;
-                canceller10 = $q.defer();
-
-                var res = getFilesCount(path, data);
-
-                res.success(function () {
-                    isSending10 = false;
-                }).error(function () {
-                    isSending10 = false;
-                });
-
-                return res;
-            }
-
-            var canceller10_50, isSending10_50 = false;
-            this.GetFilesCountBtw10_50 = function (path) {
-                var data = {
-                    "MinFileLengthMb": "10",
-                    "MaxFileLengthMb": "50"
-                }
-
-                if (isSending10_50) {
-                    console.log("trying stop 10_50 ", path);
-                    canceller10_50.resolve();
-                }
-                isSending10_50 = true;
-                canceller10_50 = $q.defer();
-
-                var res = getFilesCount(path, data);
-
-                res.success(function () {
-                    isSending10_50 = false;
-                }).error(function () {
-                    isSending10_50 = false;
-                });
-
-                return res;
-
-                //if(!requests.GetFilesCountBtw10_50){
-                //    requests.GetFilesCountBtw10_50 = getFilesCount(path, data);
-                //    }
-
-                //return requests.GetFilesCountBtw10_50.success(function () {
-                //    isSending10_50 = false;
-                //    requests.GetFilesCountBtw10_50 = null;
-                //}).error(function () {
-                //    isSending10_50 = false;
-                //});
-            }
-
-            var canceller100, isSending100 = false;
-            this.GetFilesCountMore100 = function (path) {
-                var data = {
-                    "MinFileLengthMb": "100"
-                }
-
-                if (isSending100) {
-                    console.log("trying stop 100 ", path);
-                    canceller100.resolve();
-                }
-                isSending100 = true;
-                canceller100 = $q.defer();
-
-                var res = getFilesCount(path, data);
-
-                res.success(function () {
-                    isSending100 = false;
-                }).error(function () {
-                    isSending100 = false;
-                });
-
-                return res;
-            }
-
-        }]);
-
-})()
 //# sourceMappingURL=bundle.js.map

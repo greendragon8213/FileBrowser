@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace FileBrowsing.Extensions
 {
@@ -44,12 +45,12 @@ namespace FileBrowsing.Extensions
             }
         }
 
-        public static IEnumerable<FileInfo> GetAllAvailableFilesByPredicate(this DirectoryInfo directoryInfo, Expression<Func<FileInfo, bool>> predicate)
+        public static async Task<IEnumerable<FileInfo>> GetAllAvailableFilesByPredicate(this DirectoryInfo directoryInfo, Expression<Func<FileInfo, bool>> predicate)
         {
-            return directoryInfo
+            return await Task.Factory.StartNew(() => directoryInfo
                 .GetAllAvailableFiles()
                 .AsQueryable()
-                .Where(predicate);
+                .Where(predicate));
         }
         
         private static IEnumerable<FileInfo> GetAllAvailableFiles(this DirectoryInfo directoryInfo)
